@@ -1,49 +1,91 @@
-//imports
-
-require("dotenv").config();
-
 const express = require("express");
-const mongoose = require("mongoose");
-const session = require("express-session");
-
 const app = express();
-const PORT = process.env.PORT || 4000;
+const moongoose = require("mongoose");
+const Product = require("./models/product_model.js");
 
 
-//database connection 
-mongoose.connect(process.env.DB_URI,{useNewUrlParser:true,useUnifiedTopology:true});
-const db = mongoose.connection;
-db.on("error",(error)=>console.log(error));
-db.once("open",()=>console.log("Database Connected"));
-
-
- 
-// middleware 
-app.use(express.urlencoded({extended:false}));
+//for middleware to handle json response 
 app.use(express.json());
-app.use(session({
-    secret:"secret",
-    resave:false,
-    saveUninitialized:false
-}));
+app.use(express.urlencoded({extended: false}));
 
-app.use((req,res,next)=>{
-    res.locals.user = req.session.user || null;
-    delete req.session.user;
-    next();
+
+app.get("/", (req, res) => {
+    res.send("Hello from Node Api");
 });
 
-//set template engine
-app.set("view engine","ejs");
+//app routes
+// app.use("/api/products", product.route);
 
-// route prefix 
-app.use("/",require("./routes/routes"));
-
-// app.get("/",(req,res)=>{
-//     res.send("Hello World");
-// });
-
-app.listen(PORT,()=>{
-    console.log(`Server is running on port  http://localhost:${PORT}`);
+app.get("/api/products", async (req, res) => {
+    try {
+        const products = await Product.find({});
+        res.status(200).json({products});
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
 });
 
+app.get("/api/product/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findById(id);
+        res.status(200).json({product});
+    }
+    catch (error) {
+        res.status(500).json({error: error.message});
+}
+}); 
+
+app.post("/api/products",async (req, res) => {
+    // console.log(req.body);
+//    res.send(req.body); 
+
+try {
+  const product =  await Product.create(req.body);
+    res.status(200).json({message: "Product created successfully", product});
+    
+} catch (error) {
+    res.status(500).json({error: error.message});
+}
+});
+
+app.put("/api/products/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findByIdAndUpdate(id, req.body);
+        if (!product) {
+            res.status(404).json({error: "Product not found"});
+        }
+        res.status(200).json({message: "Product updated successfully", product});
+    } catch (error) {
+        res.status(500).json({error: error.message});
+    }
+});
+
+app.delete("/api/products/:id", async (req, res) => {
+    try {
+        const {id} = req.params;
+        const product = await Product.findByIdAndDelete({_id: id});
+        if (!product) {
+            res.status(404).json({error: "Product not found"});
+        }
+        res.status(200).json({message: "Product deleted successfully", product});
+    } catch (error) {
+        res.statusCode(500).json({error: error.message});
+    }
+})
+
+// console.log(app);
+
+moongoose.connect("mongodb://localhost:27017/node_crud",{
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+} ).then(() => {
+    app.listen(4000, () => {
+    console.log("Server is running on port 4000");
+});
+    console.log("Database connected");
+    
+}).catch((err) => {
+    console.log(err);
+});
