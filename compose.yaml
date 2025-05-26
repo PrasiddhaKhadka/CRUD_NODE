@@ -1,0 +1,44 @@
+version: 1.0.0
+
+services:
+  app:
+    container_name: node_crud_learning
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    attach: false
+    restart: always
+    networks:
+      - crud-network
+    depends_on:
+      - mongo
+
+  mongo:
+    container_name: mongo_db
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    attach: false
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+    networks:
+      - crud-network
+  
+networks:
+  crud-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
+    
+
+    
+
+
+
+
+    

@@ -77,11 +77,11 @@ app.delete("/api/products/:id", async (req, res) => {
 
 // console.log(app);
 
-moongoose.connect("mongodb://localhost:27017/node_crud",{
+moongoose.connect("mongodb://mongo:27017/node_crud",{
     useNewUrlParser: true,
     useUnifiedTopology: true
 } ).then(() => {
-    app.listen(4000, () => {
+    app.listen(3000, () => {
     console.log("Server is running on port 4000");
 });
     console.log("Database connected");
